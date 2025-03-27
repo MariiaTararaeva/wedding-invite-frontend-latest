@@ -23,8 +23,8 @@
   <script setup lang="ts">
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
-  import { useAuthStore } from '@/stores/authStore'
-  import { useGuestId } from "@/composables/useGuestId.ts"
+  import { useAuthStore } from '~/stores/authStore'
+  import { useGuestId } from "~/composables/useGuestId.ts"
   
   const email = ref('')
   const password = ref('')
@@ -35,6 +35,7 @@
   const authStore = useAuthStore()
   
   const handleRegister = async () => {
+
     if (password.value !== confirmPassword.value) {
       errorMessage.value = 'Passwords do not match'
       return
@@ -46,9 +47,11 @@
     try {
       const { guestId } = useGuestId()
       await authStore.signup(email.value, password.value, guestId.value)
+      console.log("Signup success, navigating to homepage")
       router.push('/')
     } catch (err: any) {
-      errorMessage.value = err?.response?.data?.message || 'Signup failed'
+      console.error("Caught signup error:", err)
+      errorMessage.value = err?.data?.message || 'Signup failed'
     } finally {
       loading.value = false
     }

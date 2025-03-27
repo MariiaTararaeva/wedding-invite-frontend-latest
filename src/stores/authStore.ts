@@ -1,3 +1,4 @@
+
 import { defineStore } from 'pinia'
 import { useGuestId } from '~/composables/useGuestId'
 
@@ -10,7 +11,6 @@ interface AuthResponse {
   token: string
   user: User
 }
-
 const initialToken = import.meta.client ? localStorage.getItem('token') || '' : ''
 
 export const useAuthStore = defineStore('auth', {
@@ -29,7 +29,8 @@ export const useAuthStore = defineStore('auth', {
       if (!this.token) return
 
       try {
-        const res = await $fetch<AuthResponse>('/api/auth/verify', {
+        const config = useRuntimeConfig() //use only inside <script setup> or <script> tags not in store top level, so cannot define at top once but every time
+        const res = await $fetch<AuthResponse>(`${config.public.API_URL}/api/auth/verify`, {
           headers: { Authorization: `Bearer ${this.token}` },
         })
         this.user = res.user
@@ -39,29 +40,54 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async login(email: string, password: string) {
-      const guestId = useGuestId()
-      const res = await $fetch<AuthResponse>('/api/auth/login', {
-        method: 'POST',
-        body: { email, password, guestId },
-      })
-
-      this.token = res.token
-      this.user = res.user
-      localStorage.setItem('token', this.token)
-      localStorage.removeItem('guestId')
+      const { guestId } = useGuestId() 
+    
+      try {
+        const config = useRuntimeConfig()
+        const res = await $fetch<AuthResponse>(`${config.public.API_URL}/api/auth/login`, {
+          method: 'POST',
+          body: {
+            email,
+            password,
+            guestId: guestId.value, // 
+          },
+        })
+    
+        this.token = res.token
+        this.user = res.user
+        localStorage.setItem('token', this.token)
+        localStorage.removeItem('guestId') // clears the cookie since it's linked now
+    
+        return true
+      } catch (error: any) {
+        console.error("Login failed:", error)
+        throw error
+      }
     },
+    
 
-    async signup(email: string, password: string) {
-      const guestId = useGuestId()
-      const res = await $fetch<AuthResponse>('/api/auth/signup', {
-        method: 'POST',
-        body: { email, password, guestId },
-      })
+    async signup(email: string, password: string, guestId?: string) {
+      console.log("Returned from authStore.signup()")
 
-      this.token = res.token
-      this.user = res.user
-      localStorage.setItem('token', this.token)
-      localStorage.removeItem('guestId')
+      const config = useRuntimeConfig() 
+
+      try {
+        console.log("Sending signup request to backend")
+        const res = await $fetch<AuthResponse>(`${config.public.API_URL}/api/auth/signup`, {
+          method: 'POST',
+          body: { email, password, guestId},
+        })
+
+        this.token = res.token
+        this.user = res.user
+        localStorage.setItem('token', this.token)
+        localStorage.removeItem('guestId')
+
+        return true
+      } catch (err: any) {
+        console.error("Signup failed:", err)
+        throw err
+      }
     },
 
     logout() {

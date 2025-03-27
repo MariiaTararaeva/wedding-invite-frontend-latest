@@ -6,7 +6,7 @@
   </template>
   
   <script setup lang="ts">
-  import { useAuthStore } from '@/stores/authStore'
+  import { useAuthStore } from '~/stores/authStore'
   const auth = useAuthStore()
   const user = auth.user
   </script>

@@ -1,6 +1,6 @@
 <template>
     <nav class="navbar">
-      <h1>Maria & Andres</h1>
+      <h1>WIC</h1>
       <ul>
         <li><router-link to="/">Dashboard</router-link></li>
         <li><router-link to="/login">Login</router-link></li>

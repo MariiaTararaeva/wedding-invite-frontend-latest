@@ -1,6 +1,6 @@
 <template>
     <footer class="footer">
-      <p>© 2025 Maria & Andres Wedding</p>
+      <p>© Wedding Invites Creation</p>
     </footer>
   </template>
   
