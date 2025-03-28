@@ -1,16 +1,16 @@
+// This store manages the reactive authentication state.
+// It delegates login/signup/verify calls to the service layer,
+// and stores user/token info in a centralized Pinia store.
 
 import { defineStore } from 'pinia'
 import { useGuestId } from '~/composables/useGuestId'
+import { loginUser, signupUser, verifyAuthToken } from '~/application/services/auth.service'
 
 interface User {
   id: number
   email: string
 }
 
-interface AuthResponse {
-  token: string
-  user: User
-}
 const initialToken = import.meta.client ? localStorage.getItem('token') || '' : ''
 
 export const useAuthStore = defineStore('auth', {
@@ -20,69 +20,49 @@ export const useAuthStore = defineStore('auth', {
   }),
 
   getters: {
+    // Returns true if a token exists
     isAuthenticated: (state) => !!state.token,
+
+    // Returns the logged-in user ID, or null
     userId: (state) => state.user?.id || null,
   },
 
   actions: {
+    // Tries to verify the current token with the backend
     async verifyToken() {
       if (!this.token) return
-
       try {
-        const config = useRuntimeConfig() //use only inside <script setup> or <script> tags not in store top level, so cannot define at top once but every time
-        const res = await $fetch<AuthResponse>(`${config.public.API_URL}/api/auth/verify`, {
-          headers: { Authorization: `Bearer ${this.token}` },
-        })
+        const res = await verifyAuthToken(this.token)
         this.user = res.user
       } catch {
         this.logout()
       }
     },
 
+    // Calls the login service, updates state, and persists token
     async login(email: string, password: string) {
-      const { guestId } = useGuestId() 
-    
+      const { guestId } = useGuestId()
       try {
-        const config = useRuntimeConfig()
-        const res = await $fetch<AuthResponse>(`${config.public.API_URL}/api/auth/login`, {
-          method: 'POST',
-          body: {
-            email,
-            password,
-            guestId: guestId.value, // 
-          },
-        })
-    
+        const res = await loginUser(email, password, guestId.value)
         this.token = res.token
         this.user = res.user
         localStorage.setItem('token', this.token)
-        localStorage.removeItem('guestId') // clears the cookie since it's linked now
-    
+        localStorage.removeItem('guestId')
         return true
       } catch (error: any) {
         console.error("Login failed:", error)
         throw error
       }
     },
-    
 
+    // The same logic as login
     async signup(email: string, password: string, guestId?: string) {
-      console.log("Returned from authStore.signup()")
-
-      const config = useRuntimeConfig() 
-
       try {
-        console.log("Sending signup request to backend")
-        const res = await $fetch<AuthResponse>(`${config.public.API_URL}/api/auth/signup`, {
-          method: 'POST',
-          body: { email, password, guestId},
-        })
-
+        const res = await signupUser(email, password, guestId)
         this.token = res.token
         this.user = res.user
         localStorage.setItem('token', this.token)
         localStorage.removeItem('guestId')
-
         return true
       } catch (err: any) {
         console.error("Signup failed:", err)
@@ -90,6 +70,7 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    // Clears all authentication state and local storage token
     logout() {
       this.token = ''
       this.user = null
@@ -97,3 +78,10 @@ export const useAuthStore = defineStore('auth', {
     },
   },
 })
+
+
+//authStore as "state brain" that manages:
+// Reactive state (e.g., user info, token)
+// Public access via getters
+// Simple coordination between layers (like calling loginUser() from services)
+// !Session lifecycle (like logout(), token sync with localStorage)
