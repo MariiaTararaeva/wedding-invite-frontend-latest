@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",                      // Target newer JS for Node (Node can handle modern syntax)
+    "lib": ["ES2023"],                       // Include latest ES lib (no DOM here)
+    "module": "ESNext",                      // Use modern ESM modules (Vite config is typically ESM)
+    "moduleResolution": "bundler",           // Also use bundler resolution (allows import of TS, no extensions, etc.)
+    "types": ["node"],                       // Include Node.js type definitions (e.g. for __dirname, require)
+    "skipLibCheck": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "noEmit": true,
+    "isolatedModules": true
+  },
+  "include": ["vite.config.ts"]
+}
