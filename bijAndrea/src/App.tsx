@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import NavBar from "./components/NavBar";
 import Footer from "./components/Footer";
-import HomePage from "./pages/HomePage";
+import Homepage from "./pages/Homepage";
 import ServicesList from "./pages/Services/ServicesList";
 import ServiceDetail from "./pages/Services/ServicesDetail";
 import TeasList from "./pages/Teas/TeasList";
@@ -12,12 +12,13 @@ import Contact from "./pages/Contact";
 import Booking from "./pages/Booking";
 import NotFound from "./pages/NotFoundPage";
 
+
 function App() {
   return (
     <BrowserRouter>
       <NavBar />
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<Homepage />} />
         <Route path="/services" element={<ServicesList />} />
         <Route path="/services/:serviceSlug" element={<ServiceDetail />} />
         <Route path="/teas" element={<TeasList />} />
