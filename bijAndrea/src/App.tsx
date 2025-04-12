@@ -34,3 +34,4 @@ function App() {
   );
 }
 export default App;
+//add path for CMS /ADMIN 
